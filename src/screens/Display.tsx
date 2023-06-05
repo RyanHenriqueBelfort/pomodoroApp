@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect, useRef } from "react";
+import { Vibration } from "react-native";
 import { Text, Icon, Box, HStack, Pressable } from "native-base";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -14,7 +15,7 @@ export function Display() {
   const [buttonSecondaryColor, setButtonSecondaryColor] = useState("#FFD9D9");
   const [fontColor, setFontColor] = useState<string>("#471515");
   const [playCountdown, setPlayCountdown] = useState<boolean>(false);
-  const [countdown, setCountdown] = useState<number>(10 * 60);
+  const [countdown, setCountdown] = useState<number>(25 * 60);
 
   const timerId = useRef<undefined | number>();
 
@@ -43,6 +44,8 @@ export function Display() {
   };
 
   useEffect(() => {
+    setPlayCountdown(false)
+
     mode === getString(FOCUS_MODE) ? setIcon("brain") : setIcon("coffee");
 
     mode === getString(SHORTBREAK_MODE) && setColor("#DAFAE0");
@@ -64,6 +67,10 @@ export function Display() {
     mode === getString(SHORTBREAK_MODE) && setFontColor("#14401D");
     mode === getString(FOCUS_MODE) && setFontColor("#471515");
     mode === getString(LONGBREAK_MODE) && setFontColor("#153047");
+
+    mode === getString(FOCUS_MODE) && setCountdown(25 * 60)
+    mode === getString(SHORTBREAK_MODE) && setCountdown(5 * 60)
+    mode === getString(LONGBREAK_MODE) && setCountdown(15 * 60)
   }, [mode]);
 
   useEffect(() => {
@@ -73,7 +80,16 @@ export function Display() {
       }, 1000);
       return () => clearInterval(timerId.current);
     }
+
   }, [playCountdown]);
+
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      Vibration.vibrate(2000)
+      clearInterval(timerId.current);
+    }
+  }, [countdown])
 
   return (
     <>
@@ -103,10 +119,10 @@ export function Display() {
         </Text>
       </HStack>
       <Box>
-        <Text fontSize={"250"} lineHeight={250} height={250}>
+        <Text fontSize={"250"} lineHeight={250} height={250} fontWeight={playCountdown ? 'medium' : 'normal'}>
           {showMinute(countdown)}
         </Text>
-        <Text fontSize={"250"} lineHeight={250} height={250}>
+        <Text fontSize={"250"} lineHeight={250} height={250} fontWeight={playCountdown ? 'medium' : 'normal'}>
           {showSeconds(countdown)}
         </Text>
       </Box>
