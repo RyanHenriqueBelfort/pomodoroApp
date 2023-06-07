@@ -1,6 +1,14 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { Vibration } from "react-native";
 import { Text, Icon, Box, HStack, Pressable } from "native-base";
+import * as Haptics from "expo-haptics";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { Button } from "../components/Button";
@@ -24,6 +32,10 @@ export function Display() {
   const { FOCUS_MODE, LONGBREAK_MODE, SHORTBREAK_MODE, getString } =
     modeConstant;
 
+  const scale = useSharedValue(1);
+  const scale2 = useSharedValue(1);
+  const textScale = useSharedValue(0);
+
   const showMinute = (time: number) => {
     let minutes: number | string = Math.floor(time / 60);
 
@@ -40,11 +52,55 @@ export function Display() {
   };
 
   const handlePlayCountdown = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setPlayCountdown(!playCountdown);
   };
 
+  const handleForward = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    return nextMode();
+  };
+
+  const playButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: scale.value,
+        },
+      ],
+    };
+  });
+
+  const forwardButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: scale2.value,
+        },
+      ],
+    };
+  });
+
+  function numberDisplayScale() {
+    textScale.value = withSequence(
+      withTiming(0.8, { duration: 300 }),
+      withTiming(1, { duration: 300 })
+    );
+  }
+
+  const textStyledAnimation = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: textScale.value,
+        },
+      ],
+    };
+  });
+
   useEffect(() => {
-    setPlayCountdown(false)
+    setPlayCountdown(false);
+    numberDisplayScale();
 
     mode === getString(FOCUS_MODE) ? setIcon("brain") : setIcon("coffee");
 
@@ -68,9 +124,9 @@ export function Display() {
     mode === getString(FOCUS_MODE) && setFontColor("#471515");
     mode === getString(LONGBREAK_MODE) && setFontColor("#153047");
 
-    mode === getString(FOCUS_MODE) && setCountdown(25 * 60)
-    mode === getString(SHORTBREAK_MODE) && setCountdown(5 * 60)
-    mode === getString(LONGBREAK_MODE) && setCountdown(15 * 60)
+    mode === getString(FOCUS_MODE) && setCountdown(25 * 60);
+    mode === getString(SHORTBREAK_MODE) && setCountdown(5 * 60);
+    mode === getString(LONGBREAK_MODE) && setCountdown(15 * 60);
   }, [mode]);
 
   useEffect(() => {
@@ -80,16 +136,14 @@ export function Display() {
       }, 1000);
       return () => clearInterval(timerId.current);
     }
-
   }, [playCountdown]);
-
 
   useEffect(() => {
     if (countdown <= 0) {
-      Vibration.vibrate(2000)
+      Vibration.vibrate(2000);
       clearInterval(timerId.current);
     }
-  }, [countdown])
+  }, [countdown]);
 
   return (
     <>
@@ -118,14 +172,26 @@ export function Display() {
             (mode === getString(LONGBREAK_MODE) && "Long Break")}
         </Text>
       </HStack>
-      <Box>
-        <Text fontSize={"250"} lineHeight={250} height={250} fontWeight={playCountdown ? 'medium' : 'normal'}>
-          {showMinute(countdown)}
-        </Text>
-        <Text fontSize={"250"} lineHeight={250} height={250} fontWeight={playCountdown ? 'medium' : 'normal'}>
-          {showSeconds(countdown)}
-        </Text>
-      </Box>
+      <Animated.View style={textStyledAnimation}>
+        <Box>
+          <Text
+            fontSize={"250"}
+            lineHeight={250}
+            height={250}
+            fontWeight={playCountdown ? "medium" : "normal"}
+          >
+            {showMinute(countdown)}
+          </Text>
+          <Text
+            fontSize={"250"}
+            lineHeight={250}
+            height={250}
+            fontWeight={playCountdown ? "medium" : "normal"}
+          >
+            {showSeconds(countdown)}
+          </Text>
+        </Box>
+      </Animated.View>
       <Box>
         <HStack alignItems="center" space={5}>
           <Button
@@ -135,25 +201,38 @@ export function Display() {
             radius={16}
             px={4}
             py={3}
+            onPress={() => ''}
+            onPressIn={() => ''}
+            onPressOut={() => ''}
           />
-          <Button
-            color={buttonMainColor}
-            icon={playCountdown ? "pause" : "play"}
-            size="4xl"
-            radius={20}
-            px={8}
-            py={5}
-            onPress={() => handlePlayCountdown()}
-          />
-          <Button
-            color={buttonSecondaryColor}
-            icon="fast-forward"
-            size="2xl"
-            radius={15}
-            px={4}
-            py={3}
-            onPress={() => nextMode()}
-          />
+          <Animated.View style={[playButtonStyle]}>
+            <Button
+              color={buttonMainColor}
+              icon={playCountdown ? "pause" : "play"}
+              size="4xl"
+              radius={20}
+              px={8}
+              py={5}
+              onPress={() => handlePlayCountdown()}
+              onPressIn={() => {
+                scale.value = withSpring(1.2);
+              }}
+              onPressOut={() => (scale.value = withSpring(1))}
+            />
+          </Animated.View>
+          <Animated.View style={[forwardButtonStyle]}>
+            <Button
+              color={buttonSecondaryColor}
+              icon="fast-forward"
+              size="2xl"
+              radius={15}
+              px={4}
+              py={3}
+              onPress={() => handleForward()}
+              onPressIn={() => (scale2.value = withSpring(1.2))}
+              onPressOut={() => (scale2.value = withSpring(1))}
+            />
+          </Animated.View>
         </HStack>
       </Box>
     </>

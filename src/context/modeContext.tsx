@@ -23,8 +23,6 @@ export const ModeProvider = ({children}: any) => {
         }
     }
 
-    console.log(mode + ' :: Context')
-
     return  (
         <ModeContext.Provider value={{mode: mode, setMode: setMode, nextMode: nextMode}}>
             {children}

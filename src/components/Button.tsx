@@ -1,11 +1,5 @@
-import { useContext, useEffect, useState } from "react";
-
 import { Box, Icon, Pressable } from "native-base";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-import { ModeContext } from "../context/modeContext";
-
-import { modeConstant } from "../constant/modeConstant";
 
 type ButtonProps = {
     icon: string
@@ -16,12 +10,14 @@ type ButtonProps = {
     py?: number
     setMode?: React.Dispatch<React.SetStateAction<string>>
     onPress?: () => void
+    onPressIn?: () => void
+    onPressOut?: () => void
 }
 
-export function Button({ icon, color, size = '2xl', radius = 15, px = 4, py = 3, onPress }: ButtonProps) {
+export function Button({ icon, color, size = '2xl', radius = 15, px = 4, py = 3, onPress, onPressIn, onPressOut }: ButtonProps) {
 
   return (
-    <Pressable onPress={() => onPress!()}>
+    <Pressable onPress={() => onPress!()} onPressIn={() => onPressIn!()} onPressOut={() => onPressOut!()}>
       <Box backgroundColor={color} borderRadius={radius} px={px} py={py}>
         <Icon as={MaterialCommunityIcons} name={icon} size={size} />
       </Box>

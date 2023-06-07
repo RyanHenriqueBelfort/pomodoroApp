@@ -8,8 +8,6 @@ import {
   NativeBaseProvider,
   extendTheme,
   VStack,
-  Pressable,
-  Heading,
 } from "native-base";
 import { Display } from "./Display";
 import { ModeContext } from "../context/modeContext";
@@ -33,11 +31,6 @@ export function Main() {
   const [color, setColor] = useState<string>('#FFF2F2')
 
   const modeContext = useContext(ModeContext)
-
-  const { FOCUS_MODE ,LONGBREAK_MODE, SHORTBREAK_MODE, getString } = modeConstant
-
-
-  console.log(typeof getString(LONGBREAK_MODE))
 
   useEffect(() => {
     if (modeContext.mode === 'focus') setColor('#FFF2F2')
